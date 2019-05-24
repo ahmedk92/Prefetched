@@ -17,7 +17,7 @@ class ViewController: UIViewController {
     
     private lazy var data: [Prefetched<String>] = (0..<1000).map({ _ in
         return Prefetched(queue: queue, generator: { () -> String in
-            Thread.sleep(forTimeInterval: 0.01) // Simulate heavy work e.g. db access, etc...
+            Thread.sleep(forTimeInterval: 0.01) // Simulate some work e.g. quick db access, etc...
             return randomText(length: Int.random(in: 32...256))
         })
     })
