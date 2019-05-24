@@ -13,14 +13,22 @@ class Cell: UITableViewCell {
 }
 
 class ViewController: UIViewController {
-    private let queue = DispatchQueue(label: "dataQueue")
+    @IBOutlet private weak var tableView: UITableView!
     
-    private lazy var data: [Prefetched<String>] = (0..<1000).map({ _ in
+    
+    private let queue = DispatchQueue(label: "dataQueue")
+    private lazy var data: [Prefetched<String>] = (0..<10000).map({ (index) in
         return Prefetched(queue: queue, generator: { () -> String in
             Thread.sleep(forTimeInterval: 0.01) // Simulate some work e.g. quick db access, etc...
-            return randomText(length: Int.random(in: 32...256))
+            return "\(index): " + randomText(length: Int.random(in: 32...256))
         })
     })
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        tableView.scrollToRow(at: IndexPath(row: 2000, section: 0), at: .top, animated: true)
+    }
 }
 
 extension ViewController: UITableViewDataSource, UITableViewDataSourcePrefetching {
