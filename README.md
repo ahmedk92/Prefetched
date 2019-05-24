@@ -17,4 +17,6 @@ So, blocking till the items are fetched, may be a better alternative.
 
 This technique is not presented as a superior alternative (or even an equal alternative) to pagination.
 Pagination deals with batching expensive data (from a databse, web service) that can take significant time to be fetched, and such fetching can even fail.
-This technique deals with data that we know that can be fetched fast, and won't possibly fail while doing so.
+This technique deals with data that we know that can be fetched fast, and won't possibly fail while doing so. Also, pagination logic is annoying for some people (like me 😅), so it may be an overkill for such situations. 
+
+Moreover, bi-directional pagination in a `UITableView` can cause some noticeable jumps, especially when going in the negative directions (upwards) due to changing the source data and calling `reloadData`. This technique avoids that with the cost of possible blocking if scrolling is fast enough.
