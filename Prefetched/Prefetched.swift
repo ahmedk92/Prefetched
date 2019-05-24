@@ -9,6 +9,7 @@
 import Foundation
 
 class Prefetched<T> {
+    /// This has to be a serial queue.
     let queue: DispatchQueue
     let generator: () -> T
     var status = Status.fresh
