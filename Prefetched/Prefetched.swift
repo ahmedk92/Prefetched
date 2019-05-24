@@ -12,7 +12,7 @@ class Prefetched<T> {
     /// This has to be a serial queue.
     let queue: DispatchQueue
     let generator: () -> T
-    var status = Status.fresh
+    var status = Atomic(Status.fresh)
     private var _value: T?
     
     init(queue: DispatchQueue, generator: @escaping () -> T) {
@@ -21,7 +21,7 @@ class Prefetched<T> {
     }
     
     var value: T {
-        switch status {
+        switch status.value {
         case .fresh:
             print("Value requested when fresh")
             prefetch()
@@ -37,15 +37,15 @@ class Prefetched<T> {
     }
     
     func prefetch() {
-        guard case Status.fresh = status else { return }
+        guard case Status.fresh = status.value else { return }
         
-        status = .prefetching
+        status.value = .prefetching
         
         queue.async { [weak self] in
             guard let self = self else { return }
             let value = self.generator()
             self._value = value
-            self.status = .prefetched(value)
+            self.status.value = .prefetched(value)
         }
     }
 }
@@ -53,5 +53,24 @@ class Prefetched<T> {
 extension Prefetched {
     enum Status {
         case fresh, prefetching, prefetched(T)
+    }
+}
+
+struct Atomic<T> {
+    private var _value: T
+    private let queue = DispatchQueue(label: "atomic")
+    
+    init(_ value: T) {
+        _value = value
+    }
+    
+    var value: T {
+        get {
+            return queue.sync { return _value }
+        }
+        
+        set {
+            queue.sync { _value = newValue }
+        }
     }
 }
