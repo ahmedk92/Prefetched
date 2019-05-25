@@ -18,8 +18,8 @@ class ViewController: UIViewController {
     
     private let queue = DispatchQueue(label: "dataQueue")
     private lazy var data: [Prefetched<String>] = (0..<10000).map({ (index) in
-        return Prefetched(queue: queue, generator: { () -> String in
-            Thread.sleep(forTimeInterval: 0.01) // Simulate some work e.g. quick db access, etc...
+        return Prefetched(queue: queue, valueMaker: { () -> String in
+            Thread.sleep(forTimeInterval: 0.05) // Simulate some work e.g. quick db access, etc...
             return "\(index): " + randomText(length: Int.random(in: 32...256))
         })
     })
@@ -27,7 +27,7 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        tableView.scrollToRow(at: IndexPath(row: 2000, section: 0), at: .top, animated: true)
+        tableView.scrollToRow(at: IndexPath(row: 5000, section: 0), at: .top, animated: false)
     }
 }
 

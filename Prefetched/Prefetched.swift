@@ -11,13 +11,13 @@ import Foundation
 class Prefetched<T> {
     /// This has to be a serial queue.
     let queue: DispatchQueue
-    let generator: () -> T
+    let valueMaker: () -> T
     var status = Atomic(Status.fresh)
     private var _value: T?
     
-    init(queue: DispatchQueue, generator: @escaping () -> T) {
+    init(queue: DispatchQueue, valueMaker: @escaping () -> T) {
         self.queue = queue
-        self.generator = generator
+        self.valueMaker = valueMaker
     }
     
     var value: T {
@@ -43,7 +43,7 @@ class Prefetched<T> {
         
         queue.async { [weak self] in
             guard let self = self else { return }
-            let value = self.generator()
+            let value = self.valueMaker()
             self._value = value
             self.status.value = .prefetched(value)
         }
