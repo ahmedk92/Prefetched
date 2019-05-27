@@ -13,7 +13,6 @@ class Prefetched<T> {
     let queue: DispatchQueue
     let valueMaker: () -> T
     var status = Atomic(Status.fresh)
-    private var _value: T?
     
     init(queue: DispatchQueue, valueMaker: @escaping () -> T) {
         self.queue = queue
@@ -44,7 +43,6 @@ class Prefetched<T> {
         queue.async { [weak self] in
             guard let self = self else { return }
             let value = self.valueMaker()
-            self._value = value
             self.status.value = .prefetched(value)
         }
     }
