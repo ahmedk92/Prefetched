@@ -70,6 +70,8 @@ class DataWindow<Element: ElementType> {
             }
             
             self.elementsReadyBlock?(Array(indexRange))
+            
+            self.isPrefetching.value = false
         }
     }
 }
