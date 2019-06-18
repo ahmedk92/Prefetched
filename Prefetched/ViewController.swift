@@ -20,7 +20,7 @@ struct MyData: ElementType {
 class ViewController: UIViewController {
     @IBOutlet private weak var tableView: UITableView!
     
-    private lazy var dataWindow = DataWindow<MyData>(ids: Array(0...10000), dataFetcher: { (ids) in
+    private lazy var dataWindow = DataWindow<MyData>(ids: Array(0...10000), windowSize: 30, dataFetcher: { (ids) in
         Thread.sleep(forTimeInterval: 0.1) // Simulate Heavy Work
         return ids.map({ MyData(id: $0, string: "\($0) \(randomText(length: Int.random(in: 20...200)))") })
     }, elementsReadyBlock: { [weak self] (indices) in
