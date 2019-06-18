@@ -10,14 +10,14 @@ import Foundation
 
 class DataWindow<Element: ElementType> {
     // MARK: - Cache
-    private lazy var cache = WindowCache<Element.IdType, Element>()
+    private lazy var cache = WindowCache<Element.IdType, Element>(pagesToRetain: 3)
     
     // MARK: - Data Fetcher
     typealias DataFetcher = ([Element.IdType]) -> [Element]
     private let dataFetcher: DataFetcher
     
     // MARK: - Init
-    init(ids: [Element.IdType], windowSize: Int = 10, dataFetcher: @escaping DataFetcher, elementsReadyBlock: ElementsReadyBlock?) {
+    init(ids: [Element.IdType], windowSize: Int = 20, dataFetcher: @escaping DataFetcher, elementsReadyBlock: ElementsReadyBlock?) {
         self.ids = ids
         self.windowSize = windowSize
         self.dataFetcher = dataFetcher
@@ -86,8 +86,8 @@ protocol ElementType {
 fileprivate struct WindowCache<Key: Hashable, Value> {
     
     // MARK: - Init
-    init(pageCount: Int = 5) {
-        self.pageCount = pageCount
+    init(pagesToRetain: Int = 5) {
+        self.pagesToRetain = pagesToRetain
     }
     
     // MARK: - Storage
@@ -98,11 +98,11 @@ fileprivate struct WindowCache<Key: Hashable, Value> {
     }
     
     // MARK: - Purging
-    private let pageCount: Int
+    private let pagesToRetain: Int
     private var _lastReferencePage = 0
     private var lastReferencePage: Int {
         set {
-            guard abs(newValue - lastReferencePage) > pageCount else { return }
+            guard abs(newValue - lastReferencePage) > pagesToRetain else { return }
             purge(lastReferencePage)
             _lastReferencePage = newValue
         }
