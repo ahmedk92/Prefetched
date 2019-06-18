@@ -18,16 +18,21 @@ class DataWindow<Element: ElementType> {
     private let dataFetcher: DataFetcher
     
     // MARK: - Init
-    init(ids: [Element.IdType], windowSize: Int = 10, dataFetcher: @escaping DataFetcher) {
+    init(ids: [Element.IdType], windowSize: Int = 10, dataFetcher: @escaping DataFetcher, elementsReadyBlock: ElementsReadyBlock? = nil) {
         self.ids = ids
         self.windowSize = windowSize
         self.dataFetcher = dataFetcher
+        self.elementsReadyBlock = elementsReadyBlock
     }
     
     // MARK: - Accessors
     subscript(index: Int) -> Element? {
         get {
-            return cache.object(forKey: ObjectWrapper(ids[index])) as? Element
+            let element = cache.object(forKey: ObjectWrapper(ids[index])) as? Element
+            if element == nil {
+                prefetch(index: index)
+            }
+            return element
         }
         
         set {
@@ -39,8 +44,12 @@ class DataWindow<Element: ElementType> {
         }
     }
     
+    // MARK: - Delegates
+    typealias ElementsReadyBlock = ([Int]) -> Void
+    private let elementsReadyBlock: ElementsReadyBlock?
+    
     // MARK: - Paging
-    private var page = Atomic(0)
+    private var page = 0
     private let ids: [Element.IdType]
     private let windowSize: Int
     private var isPrefetching = Atomic(false)
@@ -48,17 +57,19 @@ class DataWindow<Element: ElementType> {
     func prefetch(index: Int) {
         guard !isPrefetching.value else { return }
         isPrefetching.value = true
-        page.value = index / windowSize
+        page = index / windowSize
         
-        queue.async { [weak self] in
+        queue.async { [weak self, page] in
             guard let self = self else { return }
-            let startIdIndex = self.page.value * self.windowSize
-            let ids = Array(self.ids[startIdIndex...startIdIndex + self.windowSize])
+            let indexRange = (page * self.windowSize)...(page * self.windowSize + self.windowSize)
+            let ids = Array(self.ids[indexRange])
             let elements = self.dataFetcher(ids)
             
             for (index, element) in elements.enumerated() {
                 self[index] = element
             }
+            
+            self.elementsReadyBlock?(Array(indexRange))
         }
     }
 }
