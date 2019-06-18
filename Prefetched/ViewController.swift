@@ -12,9 +12,16 @@ class Cell: UITableViewCell {
     @IBOutlet var label: UILabel!
 }
 
+struct MyData: ElementType {
+    let id: Int
+}
+
 class ViewController: UIViewController {
     @IBOutlet private weak var tableView: UITableView!
     
+    private let dataWindow = DataWindow<MyData>(ids: [], dataFetcher: { (ids) in
+        return ids.map({ MyData(id: $0) })
+    })
     
     private let queue = DispatchQueue(label: "dataQueue")
     private lazy var data: [Prefetched<String>] = (0..<10000).map({ (index) in

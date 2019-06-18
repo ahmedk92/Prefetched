@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		281850FC22B86594007F25C6 /* DataWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281850FB22B86594007F25C6 /* DataWindow.swift */; };
 		28EB6AC02298803800D27C34 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28EB6ABF2298803800D27C34 /* AppDelegate.swift */; };
 		28EB6AC22298803800D27C34 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28EB6AC12298803800D27C34 /* ViewController.swift */; };
 		28EB6AC52298803800D27C34 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 28EB6AC32298803800D27C34 /* Main.storyboard */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		281850FB22B86594007F25C6 /* DataWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataWindow.swift; sourceTree = "<group>"; };
 		28EB6ABC2298803800D27C34 /* Prefetched.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Prefetched.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		28EB6ABF2298803800D27C34 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		28EB6AC12298803800D27C34 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 				28EB6AC82298803A00D27C34 /* LaunchScreen.storyboard */,
 				28EB6ACB2298803A00D27C34 /* Info.plist */,
 				28EB6AD12298804D00D27C34 /* Prefetched.swift */,
+				281850FB22B86594007F25C6 /* DataWindow.swift */,
 			);
 			path = Prefetched;
 			sourceTree = "<group>";
@@ -139,6 +142,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				28EB6AD22298804D00D27C34 /* Prefetched.swift in Sources */,
+				281850FC22B86594007F25C6 /* DataWindow.swift in Sources */,
 				28EB6AC22298803800D27C34 /* ViewController.swift in Sources */,
 				28EB6AC02298803800D27C34 /* AppDelegate.swift in Sources */,
 			);
