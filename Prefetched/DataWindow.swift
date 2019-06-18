@@ -75,7 +75,7 @@ class DataWindow<Element: ElementType> {
         queue.async { [weak self, page] in
             guard let self = self else { return }
             let startIndex = page * self.windowSize
-            let indexRange = startIndex..<(startIndex + self.windowSize)
+            let indexRange = startIndex..<min(self.ids.count, startIndex + self.windowSize)
             let ids = Array(self.ids[indexRange])
             let elements = self.dataFetcher(ids)
             
@@ -112,10 +112,13 @@ fileprivate struct WindowCache<Key: Hashable, Value> {
     // MARK: - Purging
     private let pagesToRetain: Int
     private var _lastReferencePage = 0
+    private func shouldPurge(newPage: Int, oldPage: Int) -> Bool {
+        return abs(newPage - oldPage) > pagesToRetain
+    }
     private var lastReferencePage: Int {
         set {
-            guard abs(newValue - lastReferencePage) > pagesToRetain else { return }
-            purge(lastReferencePage)
+            guard shouldPurge(newPage: newValue, oldPage: lastReferencePage) else { return }
+            purge(for: newValue)
             _lastReferencePage = newValue
         }
         
@@ -123,10 +126,10 @@ fileprivate struct WindowCache<Key: Hashable, Value> {
             return _lastReferencePage
         }
     }
-    private mutating func purge(_ page: Int) {
-        dict.mutate { (dict) in
+    private mutating func purge(for page: Int) {
+        dict.mutate { [shouldPurge] (dict) in
             for (key, value) in dict {
-                if value.page == page {
+                if shouldPurge(page, value.page) {
                     dict.removeValue(forKey: key)
                 }
             }
@@ -149,6 +152,8 @@ fileprivate struct WindowCache<Key: Hashable, Value> {
             } else {
                 dict.value.removeValue(forKey: key)
             }
+            
+            print("\(dict.value.count) items in cache.")
         }
     }
 }
