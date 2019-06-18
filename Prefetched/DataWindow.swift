@@ -39,6 +39,18 @@ class DataWindow<Element: ElementType> {
         }
     }
     
+    subscript(index: Int, block block: Bool) -> Element? {
+        let element = cache[ids[index]]
+        if element == nil {
+            prefetch(index: index)
+        }
+        
+        if block {
+            queue.sync {}
+        }
+        return element
+    }
+    
     // MARK: - Delegates
     typealias ElementsReadyBlock = ([Int]) -> Void
     private let elementsReadyBlock: ElementsReadyBlock?

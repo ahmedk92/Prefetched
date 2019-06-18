@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     @IBOutlet private weak var tableView: UITableView!
     
     private lazy var dataWindow = DataWindow<MyData>(ids: Array(0...10000), dataFetcher: { (ids) in
-        Thread.sleep(forTimeInterval: 0.5) // Simulate Heavy Work
+        Thread.sleep(forTimeInterval: 0.1) // Simulate Heavy Work
         return ids.map({ MyData(id: $0, string: "\($0) \(randomText(length: Int.random(in: 20...200)))") })
     }, elementsReadyBlock: { [weak self] (indices) in
         guard let self = self else { return }
@@ -46,7 +46,7 @@ extension ViewController: UITableViewDataSource, UITableViewDataSourcePrefetchin
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! Cell
-        cell.label.text = dataWindow[indexPath.row]?.string
+        cell.label.text = dataWindow[indexPath.row, block: true]?.string
         return cell
     }
     
@@ -57,11 +57,11 @@ extension ViewController: UITableViewDataSource, UITableViewDataSourcePrefetchin
     }
 }
 
-extension ViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 50
-    }
-}
+//extension ViewController: UITableViewDelegate {
+//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+//        return 50
+//    }
+//}
 
 // Credits: https://gist.github.com/skreutzberger/eac3edc7918d0251f366
 func randomText(length: Int, justLowerCase: Bool = false) -> String {
