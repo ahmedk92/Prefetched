@@ -21,6 +21,7 @@ class ViewController: UIViewController {
     @IBOutlet private weak var tableView: UITableView!
     
     private lazy var dataWindow = DataWindow<MyData>(ids: Array(0...10000), dataFetcher: { (ids) in
+        Thread.sleep(forTimeInterval: 0.5) // Simulate Heavy Work
         return ids.map({ MyData(id: $0, string: "\($0) \(randomText(length: Int.random(in: 20...200)))") })
     }, elementsReadyBlock: { [weak self] (indices) in
         guard let self = self else { return }
