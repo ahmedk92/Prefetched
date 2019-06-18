@@ -10,8 +10,7 @@ import Foundation
 
 class DataWindow<Element: ElementType> {
     // MARK: - Cache
-    private typealias CacheType = NSCache<ObjectWrapper<Element.IdType>, ObjectWrapper<Element>>
-    private let cache = CacheType()
+    private var cache = Atomic([Element.IdType: Element]())
     
     // MARK: - Data Fetcher
     typealias DataFetcher = ([Element.IdType]) -> [Element]
@@ -28,7 +27,7 @@ class DataWindow<Element: ElementType> {
     // MARK: - Accessors
     subscript(index: Int) -> Element? {
         get {
-            let element = cache.object(forKey: ObjectWrapper(ids[index])) as? Element
+            let element = cache.value[ids[index]]
             if element == nil {
                 prefetch(index: index)
             }
@@ -36,11 +35,7 @@ class DataWindow<Element: ElementType> {
         }
         
         set {
-            if let newValue = newValue {
-                cache.setObject(ObjectWrapper(newValue), forKey: ObjectWrapper(ids[index]))
-            } else {
-                cache.removeObject(forKey: ObjectWrapper(ids[index]))
-            }
+            cache.value[ids[index]] = newValue
         }
     }
     
@@ -79,12 +74,4 @@ class DataWindow<Element: ElementType> {
 protocol ElementType {
     associatedtype IdType: Hashable
     var id: IdType { get }
-}
-
-fileprivate class ObjectWrapper<T> {
-    let value: T
-    
-    init(_ value: T) {
-        self.value = value
-    }
 }
