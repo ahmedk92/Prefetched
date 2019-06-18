@@ -71,4 +71,10 @@ struct Atomic<T> {
             queue.sync { _value = newValue }
         }
     }
+    
+    mutating func mutate(_ mutationBlock: (inout T) -> Void) {
+        queue.sync {
+            mutationBlock(&self._value)
+        }
+    }
 }

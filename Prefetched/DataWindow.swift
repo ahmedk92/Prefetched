@@ -10,7 +10,7 @@ import Foundation
 
 class DataWindow<Element: ElementType> {
     // MARK: - Cache
-    private var cache = Atomic([Element.IdType: Element]())
+    private lazy var cache = WindowCache<Element.IdType, Element>()
     
     // MARK: - Data Fetcher
     typealias DataFetcher = ([Element.IdType]) -> [Element]
@@ -27,7 +27,7 @@ class DataWindow<Element: ElementType> {
     // MARK: - Accessors
     subscript(index: Int) -> Element? {
         get {
-            let element = cache.value[ids[index]]
+            let element = cache[ids[index]]
             if element == nil {
                 prefetch(index: index)
             }
@@ -35,7 +35,7 @@ class DataWindow<Element: ElementType> {
         }
         
         set {
-            cache.value[ids[index]] = newValue
+            cache[ids[index], page: page(forIndex: index)] = newValue
         }
     }
     
@@ -49,13 +49,16 @@ class DataWindow<Element: ElementType> {
     private let windowSize: Int
     private var isPrefetching = Atomic(false)
     private lazy var queue = DispatchQueue(label: "DataWindow.\(ObjectIdentifier(self))")
+    private func page(forIndex index: Int) -> Int {
+        return index / windowSize
+    }
     func prefetch(index: Int) {
         guard
             !isPrefetching.value,
-            cache.value[ids[index]] == nil
+            cache[ids[index]] == nil
             else { return }
         isPrefetching.value = true
-        page = index / windowSize
+        page = page(forIndex: index)
         
         queue.async { [weak self, page] in
             guard let self = self else { return }
@@ -78,4 +81,62 @@ class DataWindow<Element: ElementType> {
 protocol ElementType {
     associatedtype IdType: Hashable
     var id: IdType { get }
+}
+
+fileprivate struct WindowCache<Key: Hashable, Value> {
+    
+    // MARK: - Init
+    init(pageCount: Int = 5) {
+        self.pageCount = pageCount
+    }
+    
+    // MARK: - Storage
+    private var dict = Atomic([Key : Item]())
+    private struct Item {
+        let value: Value
+        let page: Int
+    }
+    
+    // MARK: - Purging
+    private let pageCount: Int
+    private var _lastReferencePage = 0
+    private var lastReferencePage: Int {
+        set {
+            guard abs(newValue - lastReferencePage) > pageCount else { return }
+            purge(lastReferencePage)
+            _lastReferencePage = newValue
+        }
+        
+        get {
+            return _lastReferencePage
+        }
+    }
+    private mutating func purge(_ page: Int) {
+        dict.mutate { (dict) in
+            for (key, value) in dict {
+                if value.page == page {
+                    dict.removeValue(forKey: key)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Accessors
+    subscript(key: Key) -> Value? {
+        return dict.value[key]?.value
+    }
+    
+    subscript(key: Key, page page: Int) -> Value? {
+        get {
+            return dict.value[key]?.value
+        }
+        set {
+            if let newValue = newValue {
+                dict.value[key] = Item(value: newValue, page: page)
+                lastReferencePage = page
+            } else {
+                dict.value.removeValue(forKey: key)
+            }
+        }
+    }
 }
