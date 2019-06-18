@@ -17,7 +17,7 @@ class DataWindow<Element: ElementType> {
     private let dataFetcher: DataFetcher
     
     // MARK: - Init
-    init(ids: [Element.IdType], windowSize: Int = 10, dataFetcher: @escaping DataFetcher, elementsReadyBlock: ElementsReadyBlock? = nil) {
+    init(ids: [Element.IdType], windowSize: Int = 10, dataFetcher: @escaping DataFetcher, elementsReadyBlock: ElementsReadyBlock?) {
         self.ids = ids
         self.windowSize = windowSize
         self.dataFetcher = dataFetcher
@@ -45,23 +45,27 @@ class DataWindow<Element: ElementType> {
     
     // MARK: - Paging
     private var page = 0
-    private let ids: [Element.IdType]
+    let ids: [Element.IdType]
     private let windowSize: Int
     private var isPrefetching = Atomic(false)
     private lazy var queue = DispatchQueue(label: "DataWindow.\(ObjectIdentifier(self))")
     func prefetch(index: Int) {
-        guard !isPrefetching.value else { return }
+        guard
+            !isPrefetching.value,
+            cache.value[ids[index]] == nil
+            else { return }
         isPrefetching.value = true
         page = index / windowSize
         
         queue.async { [weak self, page] in
             guard let self = self else { return }
-            let indexRange = (page * self.windowSize)...(page * self.windowSize + self.windowSize)
+            let startIndex = page * self.windowSize
+            let indexRange = startIndex..<(startIndex + self.windowSize)
             let ids = Array(self.ids[indexRange])
             let elements = self.dataFetcher(ids)
             
             for (index, element) in elements.enumerated() {
-                self[index] = element
+                self[startIndex + index] = element
             }
             
             self.elementsReadyBlock?(Array(indexRange))

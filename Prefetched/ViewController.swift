@@ -14,45 +14,51 @@ class Cell: UITableViewCell {
 
 struct MyData: ElementType {
     let id: Int
+    let string: String
 }
 
 class ViewController: UIViewController {
     @IBOutlet private weak var tableView: UITableView!
     
-    private let dataWindow = DataWindow<MyData>(ids: [], dataFetcher: { (ids) in
-        return ids.map({ MyData(id: $0) })
+    private lazy var dataWindow = DataWindow<MyData>(ids: Array(0...10000), dataFetcher: { (ids) in
+        return ids.map({ MyData(id: $0, string: "\($0) \(randomText(length: Int.random(in: 20...200)))") })
+    }, elementsReadyBlock: { [weak self] (indices) in
+        guard let self = self else { return }
+        
+        DispatchQueue.main.async {
+//            self.tableView.reloadRows(at: indices.map({ IndexPath(row: $0, section: 0) }), with: .automatic)
+//            self.tableView.reloadRows(at: self.tableView.indexPathsForVisibleRows ?? [], with: .automatic)
+            self.tableView.reloadData()
+        }
     })
-    
-    private let queue = DispatchQueue(label: "dataQueue")
-    private lazy var data: [Prefetched<String>] = (0..<10000).map({ (index) in
-        return Prefetched(queue: queue, valueMaker: { () -> String in
-            Thread.sleep(forTimeInterval: 0.05) // Simulate some work e.g. quick db access, etc...
-            return "\(index): " + randomText(length: Int.random(in: 32...256))
-        })
-    })
-    
+        
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        tableView.scrollToRow(at: IndexPath(row: 5000, section: 0), at: .top, animated: false)
+//        tableView.scrollToRow(at: IndexPath(row: 5000, section: 0), at: .top, animated: false)
     }
 }
 
 extension ViewController: UITableViewDataSource, UITableViewDataSourcePrefetching {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return data.count
+        return dataWindow.ids.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! Cell
-        cell.label.text = data[indexPath.row].value
+        cell.label.text = dataWindow[indexPath.row]?.string
         return cell
     }
     
     func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
         for indexPath in indexPaths {
-            data[indexPath.row].prefetch()
+            dataWindow.prefetch(index: indexPath.row)
         }
+    }
+}
+
+extension ViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 50
     }
 }
 
